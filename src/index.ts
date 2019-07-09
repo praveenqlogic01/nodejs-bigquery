@@ -760,7 +760,7 @@ export class BigQuery extends common.Service {
     } else if (is.array(value)) {
       return {
         type: 'ARRAY',
-        arrayType: BigQuery.getType_(value[0]),
+        arrayType: BigQuery.getType_(value[0] || 1),
       };
     } else if (is.boolean(value)) {
       typeName = 'BOOL';
