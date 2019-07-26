@@ -30,7 +30,7 @@ import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
 import * as uuid from 'uuid';
 
-import {BigQueryDate, Dataset, Job, Table} from '../src';
+import {BigQueryDate, Dataset, Job, Table, valueType} from '../src';
 import {JobOptions} from '../src/job';
 import {TableField} from '../src/table';
 
@@ -852,6 +852,26 @@ describe('BigQuery', () => {
       };
 
       const param = BigQuery.valueToQueryParameter_(structs);
+      assert.deepStrictEqual(param, expectedParam);
+    });
+
+    it('should format an empty array with property emptyArrayType', () => {
+      const type = valueType.STRING;
+      const structs = [{emptyArrayType: type}];
+      const expectedParam = {
+        parameterType: {
+          type: 'ARRAY',
+          arrayType: {
+            type,
+          },
+        },
+        parameterValue: {
+          arrayValues: [],
+        },
+      };
+
+      const param = BigQuery.valueToQueryParameter_(structs);
+      console.log(param);
       assert.deepStrictEqual(param, expectedParam);
     });
 
