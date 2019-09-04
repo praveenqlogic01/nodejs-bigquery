@@ -871,7 +871,7 @@ describe('BigQuery', () => {
       };
 
       const param = BigQuery.valueToQueryParameter_(structs);
-      console.log(param);
+
       assert.deepStrictEqual(param, expectedParam);
     });
 

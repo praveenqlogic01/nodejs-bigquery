@@ -104,14 +104,13 @@ export type SimpleQueryRowsCallback = ResourceCallback<
 
 export type Query = JobRequest<bigquery.IJobConfigurationQuery> & {
   destination?: Table;
-  
-  params?:
-    // tslint:disable-next-line: no-any
+
+  params?:  // tslint:disable-next-line: no-any
     | any[]
     // tslint:disable-next-line: no-any
     | {[param: string]: any}
     // tslint:disable-next-line: no-any
-    | {[param: string]: any; dataType?: valueType};
+    | {[param: string]: any};
   dryRun?: boolean;
   defaultDataset?: Dataset;
   job?: Job;
