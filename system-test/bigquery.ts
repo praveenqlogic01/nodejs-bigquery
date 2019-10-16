@@ -1036,6 +1036,20 @@ describe('BigQuery', () => {
             );
           });
 
+          it('should work with empty arrays', done => {
+            bigquery.query(
+              {
+                query: 'SELECT * FROM UNNEST (?)',
+                params: [[]],
+              },
+              (err, rows) => {
+                assert.ifError(err);
+                assert.strictEqual(rows!.length, 0);
+                done();
+              }
+            );
+          });
+
           it('should work with structs', done => {
             bigquery.query(
               {

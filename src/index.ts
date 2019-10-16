@@ -43,6 +43,19 @@ import {
 import {GoogleErrorBody} from '@google-cloud/common/build/src/util';
 import bigquery from './types';
 
+export enum valueType {
+  DATE = 'DATE',
+  DATETIME = 'DATETIME',
+  TIME = 'TIME',
+  TIMESTAMP = 'TIMESTAMP',
+  BYTES = 'BYTES',
+  NUMERIC = 'NUMERIC',
+  ARRAY = 'ARRAY',
+  BOOL = 'BOOL',
+  STRUCT = 'STRUCT',
+  STRING = 'STRING',
+}
+
 export interface RequestCallback<T> {
   (err: Error | null, response?: T | null): void;
 }
@@ -91,8 +104,13 @@ export type SimpleQueryRowsCallback = ResourceCallback<
 
 export type Query = JobRequest<bigquery.IJobConfigurationQuery> & {
   destination?: Table;
-  // tslint:disable-next-line no-any
-  params?: any[] | {[param: string]: any};
+
+  params?:  // tslint:disable-next-line: no-any
+    | any[]
+    // tslint:disable-next-line: no-any
+    | {[param: string]: any}
+    // tslint:disable-next-line: no-any
+    | {[param: string]: any};
   dryRun?: boolean;
   defaultDataset?: Dataset;
   job?: Job;
@@ -742,7 +760,7 @@ export class BigQuery extends common.Service {
    * @returns {string} The type detected from the value.
    */
   // tslint:disable-next-line no-any
-  static getType_(value: any): ValueType {
+  static getType_(value: any, type?: valueType): ValueType {
     let typeName;
 
     if (value instanceof BigQueryDate) {
@@ -758,6 +776,19 @@ export class BigQuery extends common.Service {
     } else if (value instanceof Big) {
       typeName = 'NUMERIC';
     } else if (is.array(value)) {
+      if (value.length === 0 && !type) {
+        throw new Error(
+          'Array type need to be provide! ie. [{emptyArrayType="STRING"}]'
+        );
+      }
+      if (value.length === 0 && type) {
+        return {
+          type: 'ARRAY',
+          arrayType: {
+            type,
+          },
+        };
+      }
       return {
         type: 'ARRAY',
         arrayType: BigQuery.getType_(value[0]),
@@ -809,8 +840,18 @@ export class BigQuery extends common.Service {
     if (is.date(value)) {
       value = BigQuery.timestamp(value as Date);
     }
+    let emptyArrayType;
+    if (
+      is.array(value) &&
+      value[0] &&
+      value[0].hasOwnProperty('emptyArrayType')
+    ) {
+      emptyArrayType = value[0].emptyArrayType;
+      delete value[0].emptyArrayType;
+      value = [];
+    }
 
-    const parameterType = BigQuery.getType_(value);
+    const parameterType = BigQuery.getType_(value, emptyArrayType);
     const queryParameter: QueryParameter = {parameterType, parameterValue: {}};
 
     const typeName = queryParameter!.parameterType!.type!;
