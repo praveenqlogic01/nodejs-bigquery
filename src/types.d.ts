@@ -73,6 +73,103 @@ declare namespace bigquery {
     name?: string;
   };
 
+  /**
+   * Arima coefficients.
+   */
+  type IArimaCoefficients = {
+    /**
+     * Auto-regressive coefficients, an array of double.
+     */
+    autoRegressiveCoefficients?: Array<number>;
+    /**
+     * Intercept coefficient, just a double not an array.
+     */
+    interceptCoefficient?: number;
+    /**
+     * Moving-average coefficients, an array of double.
+     */
+    movingAverageCoefficients?: Array<number>;
+  };
+
+  /**
+   * ARIMA model fitting metrics.
+   */
+  type IArimaFittingMetrics = {
+    /**
+     * AIC
+     */
+    aic?: number;
+    /**
+     * log-likelihood
+     */
+    logLikelihood?: number;
+    /**
+     * variance.
+     */
+    variance?: number;
+  };
+
+  /**
+   * Arima model information.
+   */
+  type IArimaModelInfo = {
+    /**
+     * Arima coefficients.
+     */
+    arimaCoefficients?: IArimaCoefficients;
+    /**
+     * Arima fitting metrics.
+     */
+    arimaFittingMetrics?: IArimaFittingMetrics;
+    /**
+     * Non-seasonal order.
+     */
+    nonSeasonalOrder?: IArimaOrder;
+  };
+
+  /**
+   * Arima order, can be used for both non-seasonal and seasonal parts.
+   */
+  type IArimaOrder = {
+    /**
+     * Order of the differencing part.
+     */
+    d?: string;
+    /**
+     * Order of the autoregressive part.
+     */
+    p?: string;
+    /**
+     * Order of the moving-average part.
+     */
+    q?: string;
+  };
+
+  /**
+   * (Auto-)arima fitting result. Wrap everything in ArimaResult for easier
+   * refactoring if we want to use model-specific iteration results.
+   */
+  type IArimaResult = {
+    /**
+     * This message is repeated because there are multiple arima models
+     * fitted in auto-arima. For non-auto-arima model, its size is one.
+     */
+    arimaModelInfo?: Array<IArimaModelInfo>;
+    /**
+     * Seasonal periods. Repeated because multiple periods are supported for
+     * one time series.
+     */
+    seasonalPeriods?: Array<
+      | 'SEASONAL_PERIOD_TYPE_UNSPECIFIED'
+      | 'NO_SEASONALITY'
+      | 'DAILY'
+      | 'WEEKLY'
+      | 'MONTHLY'
+      | 'QUARTERLY'
+      | 'YEARLY'
+    >;
+  };
+
   type IBigQueryModelTraining = {
     /**
      * [Output-only, Beta] Index of current ML training iteration. Updated during create model query job to show job progress.
@@ -910,6 +1007,7 @@ declare namespace bigquery {
    * Information about a single iteration of the training run.
    */
   type IIterationResult = {
+    arimaResult?: IArimaResult;
     /**
      * Information about top clusters for clustering models.
      */
@@ -1418,6 +1516,10 @@ declare namespace bigquery {
      * [Output-only] Name of the primary reservation assigned to this job. Note that this could be different than reservations reported in the reservation usage field if parent reservations were used to execute this job.
      */
     reservation_id?: string;
+    /**
+     * [Output-only] Statistics for a child job of a script.
+     */
+    scriptStatistics?: IScriptStatistics;
     /**
      * [Output-only] Start time of this job, in milliseconds since the epoch. This field will be present when the job transitions from the PENDING state to either RUNNING or DONE.
      */
@@ -2167,6 +2269,44 @@ declare namespace bigquery {
      * Info describing predicted label distribution.
      */
     entries?: Array<IEntry>;
+  };
+
+  type IScriptStackFrame = {
+    /**
+     * [Output-only] One-based end column.
+     */
+    endColumn?: number;
+    /**
+     * [Output-only] One-based end line.
+     */
+    endLine?: number;
+    /**
+     * [Output-only] Name of the active procedure, empty if in a top-level script.
+     */
+    procedureId?: string;
+    /**
+     * [Output-only] One-based start column.
+     */
+    startColumn?: number;
+    /**
+     * [Output-only] One-based start line.
+     */
+    startLine?: number;
+    /**
+     * [Output-only] Text of the current statement/expression.
+     */
+    text?: string;
+  };
+
+  type IScriptStatistics = {
+    /**
+     * [Output-only] Whether this child job was a statement or expression.
+     */
+    evaluationKind?: string;
+    /**
+     * Stack trace showing the line/column/procedure name of each frame on the stack at the point where the current evaluation happened. The leaf frame is first, the primary script is last. Never empty.
+     */
+    stackFrames?: Array<IScriptStackFrame>;
   };
 
   /**
